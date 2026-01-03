@@ -19,7 +19,7 @@ import {
   WifiOff,
   CheckCircle2,
   Info,
-  Mic
+  Book
 } from 'lucide-react';
 import { Category, Language, LANGUAGES } from './types';
 import HomeView from './components/HomeView';
@@ -28,11 +28,11 @@ import ColorsView from './components/ColorsView';
 import FruitsVegView from './components/FruitsVegView';
 import MathView from './components/MathView';
 import RhymeTimeView from './components/RhymeTimeView';
+import StoriesView from './components/StoriesView';
 import QuizView from './components/QuizView';
 import WeekDaysView from './components/WeekDaysView';
 import MonthsView from './components/MonthsView';
 import SeasonsView from './components/SeasonsView';
-import LiveTalkView from './components/LiveTalkView';
 import { geminiService, decodeBase64, decodeAudioData } from './services/geminiService';
 
 const App: React.FC = () => {
@@ -91,8 +91,7 @@ const App: React.FC = () => {
       }
       
       const ctx = audioContextRef.current;
-      const translatedText = await geminiService.translateText(text, language);
-      const base64Audio = await geminiService.textToSpeech(translatedText);
+      const base64Audio = await geminiService.textToSpeech(text, language);
       
       if (base64Audio) {
         const audioBuffer = await decodeAudioData(decodeBase64(base64Audio), ctx);
@@ -111,7 +110,8 @@ const App: React.FC = () => {
   };
 
   const categories = [
-    { id: 'livetalk', label: 'Talk to Sparky', icon: Mic, color: 'bg-indigo-600 animate-pulse' },
+    { id: 'stories', label: 'Magic Stories', icon: Book, color: 'bg-amber-500' },
+    { id: 'rhymes', label: 'Rhyme Time', icon: Music, color: 'bg-yellow-400' },
     { id: 'alphabet', label: 'ABC Letters', icon: BookOpen, color: 'bg-rose-400' },
     { id: 'colors', label: 'Rainbow Colors', icon: Palette, color: 'bg-sky-400' },
     { id: 'fruits', label: 'Yummy Fruits', icon: Apple, color: 'bg-orange-400' },
@@ -120,7 +120,6 @@ const App: React.FC = () => {
     { id: 'weekdays', label: 'Week Days', icon: Calendar, color: 'bg-indigo-400' },
     { id: 'months', label: 'Months', icon: Clock, color: 'bg-cyan-400' },
     { id: 'seasons', label: 'Seasons', icon: CloudSun, color: 'bg-amber-400' },
-    { id: 'stories', label: 'Rhyme Time', icon: Music, color: 'bg-yellow-400' },
     { id: 'quiz', label: 'Quiz Master', icon: Trophy, color: 'bg-emerald-400' },
   ];
 
@@ -135,21 +134,19 @@ const App: React.FC = () => {
       case 'weekdays': return <WeekDaysView onSpeak={speak} />;
       case 'months': return <MonthsView onSpeak={speak} />;
       case 'seasons': return <SeasonsView onSpeak={speak} />;
-      case 'stories': return <RhymeTimeView onSpeak={speak} language={language} />;
+      case 'rhymes': return <RhymeTimeView onSpeak={speak} language={language} />;
+      case 'stories': return <StoriesView onSpeak={speak} language={language} />;
       case 'quiz': return <QuizView onSpeak={speak} onGoHome={() => setCurrentCategory('home')} />;
-      case 'livetalk': return <LiveTalkView onBack={() => setCurrentCategory('home')} />;
       default: return <HomeView onSelectCategory={setCurrentCategory} categories={categories} />;
     }
   };
 
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col pb-safe">
-      {/* Background Decorations */}
       <div className="bubble w-64 h-64 bg-blue-300 top-10 left-10"></div>
       <div className="bubble w-48 h-48 bg-pink-300 bottom-10 right-10"></div>
       <div className="bubble w-32 h-32 bg-yellow-300 top-1/2 left-1/2"></div>
 
-      {/* Header */}
       <header className="p-4 md:p-6 flex items-center justify-between z-20">
         <div className="flex items-center gap-2 md:gap-3 cursor-pointer group" onClick={() => setCurrentCategory('home')}>
           <div className="bg-white p-2 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
@@ -194,20 +191,17 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 p-4 md:p-8 z-10 overflow-y-auto pb-24">
         {renderView()}
       </main>
 
-      {/* Global Audio Indicator */}
-      {isSpeaking && currentCategory !== 'livetalk' && (
+      {isSpeaking && (
         <div className="fixed bottom-6 left-6 bg-white p-3 md:p-4 rounded-full shadow-2xl z-50 animate-bounce flex items-center gap-2 border-2 border-amber-300">
           <Volume2 className="text-amber-500 animate-pulse" size={20} />
           <span className="text-amber-600 font-bold text-xs md:text-sm">Speaking...</span>
         </div>
       )}
 
-      {/* Install Helper Dialog */}
       {showInstallInfo && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-sm">
           <div className="bg-white rounded-[3rem] p-8 max-w-sm w-full text-center shadow-2xl animate-in zoom-in">
@@ -219,17 +213,11 @@ const App: React.FC = () => {
               1. Tap the <span className="font-bold text-blue-500">three dots</span> or <span className="font-bold text-blue-500">share icon</span> in your browser.<br/>
               2. Select <span className="font-bold">"Add to Home Screen"</span> or <span className="font-bold">"Install App"</span>.
             </p>
-            <button 
-              onClick={() => setShowInstallInfo(false)}
-              className="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold"
-            >
-              Got it!
-            </button>
+            <button onClick={() => setShowInstallInfo(false)} className="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold">Got it!</button>
           </div>
         </div>
       )}
 
-      {/* Mobile Install Hint */}
       {deferredPrompt && !isInstalled && (
         <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full px-6">
            <button onClick={installApp} className="w-full bg-emerald-500 text-white h-14 rounded-full shadow-2xl flex items-center justify-center gap-2 font-black animate-bounce border-4 border-white">
@@ -238,10 +226,9 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Offline AI Warning */}
       {!isOnline && (
         <div className="fixed bottom-0 left-0 right-0 bg-rose-500 text-white text-[10px] font-bold text-center py-1 z-[100] uppercase tracking-widest">
-          AI Voice & 3D Magic needs WiFi. All lessons work offline!
+          AI Voice needs WiFi. All lessons work offline!
         </div>
       )}
     </div>

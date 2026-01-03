@@ -1,4 +1,3 @@
-
 export type Category = 
   | 'alphabet' 
   | 'colors' 
@@ -6,11 +5,11 @@ export type Category =
   | 'vegetables' 
   | 'math' 
   | 'stories' 
+  | 'rhymes'
   | 'quiz' 
   | 'weekdays' 
   | 'months' 
   | 'seasons' 
-  | 'livetalk'
   | 'home';
 
 export type Language = 

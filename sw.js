@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kiddoland-v4';
+const CACHE_NAME = 'kiddoland-v5';
 const OFFLINE_URL = './index.html';
 
 const INITIAL_CACHE = [
