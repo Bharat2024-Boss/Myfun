@@ -1,4 +1,3 @@
-
 name: Build Android APK
 
 on:
@@ -9,6 +8,8 @@ on:
 
 permissions:
   contents: write
+  actions: write
+  packages: write
 
 jobs:
   build:
@@ -16,13 +17,15 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Build Android App (APK)
-        uses: pwa-builder/pwa-to-app-action@v2
+        uses: pwa-builder/pwa-action@v2
         with:
           platform: android
-          # IMPORTANT: This URL must be live on GitHub Pages for the builder to work.
-          # The builder scans the manifest at this URL to create the APK.
+          # Replace 'your-username' and 'your-repo' if they differ, 
+          # but the variable syntax below is the most compatible.
           url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
           name: "KiddoLand AI"
           packageId: "com.kiddoland.ai.app"
@@ -33,3 +36,4 @@ jobs:
         with:
           name: kiddoland-android-apk
           path: ./*-release.apk
+          if-no-files-found: error
