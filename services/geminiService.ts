@@ -109,29 +109,6 @@ export const geminiService = {
     return JSON.parse(response.text) as { title: string; story: string; imagePrompt: string };
   },
 
-  async generateVideo(prompt: string) {
-    const ai = getAI();
-    let operation = await ai.models.generateVideos({
-      model: 'veo-3.1-fast-generate-preview',
-      prompt: `A cute, vibrant, 3D animated scene for kids: ${prompt}. Friendly characters, bright colors, Pixar style.`,
-      config: {
-        numberOfVideos: 1,
-        resolution: '720p',
-        aspectRatio: '16:9'
-      }
-    });
-    
-    while (!operation.done) {
-      await new Promise(resolve => setTimeout(resolve, 10000));
-      operation = await ai.operations.getVideosOperation({ operation: operation });
-    }
-
-    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-    const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
-    const blob = await response.blob();
-    return URL.createObjectURL(blob);
-  },
-
   async textToSpeech(text: string, lang: string = 'English') {
     const ai = getAI();
     try {
@@ -177,6 +154,36 @@ export const geminiService = {
       }
     }
     return null;
+  },
+
+  // Fix: Added missing generateVideo method for VideoView component
+  async generateVideo(prompt: string) {
+    const ai = getAI();
+    let operation = await ai.models.generateVideos({
+      model: 'veo-3.1-fast-generate-preview',
+      prompt: prompt,
+      config: {
+        numberOfVideos: 1,
+        resolution: '720p',
+        aspectRatio: '16:9'
+      }
+    });
+    while (!operation.done) {
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      operation = await ai.operations.getVideosOperation({ operation: operation });
+    }
+
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+    const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    if (!response.ok) {
+       const errorText = await response.text();
+       if (response.status === 404 || errorText.includes("Requested entity was not found")) {
+         throw new Error("Requested entity was not found.");
+       }
+       throw new Error("Failed to download video from Veo.");
+    }
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
   },
 
   async generateDailyFact(lang: string = 'English') {
