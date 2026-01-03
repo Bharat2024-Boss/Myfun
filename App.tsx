@@ -16,7 +16,8 @@ import {
   Clock,
   Globe,
   Download,
-  WifiOff
+  WifiOff,
+  CheckCircle2
 } from 'lucide-react';
 import { Category, Language, LANGUAGES } from './types';
 import HomeView from './components/HomeView';
@@ -38,6 +39,7 @@ const App: React.FC = () => {
   const [showLangs, setShowLangs] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
@@ -47,6 +49,11 @@ const App: React.FC = () => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
+    
+    // Check if app is already running in standalone mode
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+    }
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -65,6 +72,7 @@ const App: React.FC = () => {
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
       setDeferredPrompt(null);
+      setIsInstalled(true);
     }
   };
 
@@ -139,20 +147,23 @@ const App: React.FC = () => {
           <div className="bg-white p-2 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
             <Sparkles className="text-amber-500 w-6 h-6 md:w-8 md:h-8" />
           </div>
-          <h1 className="text-xl md:text-3xl font-bold text-slate-800 tracking-tight">KiddoLand</h1>
+          <div className="flex flex-col">
+            <h1 className="text-xl md:text-3xl font-bold text-slate-800 tracking-tight leading-none">KiddoLand</h1>
+            {isInstalled && <span className="text-[10px] font-bold text-emerald-500 flex items-center gap-1 uppercase tracking-tighter"><CheckCircle2 size={10} /> Installed</span>}
+          </div>
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
           {!isOnline && (
-            <div className="flex items-center gap-1 bg-rose-100 text-rose-600 px-3 py-1.5 rounded-full text-xs font-bold border border-rose-200">
-              <WifiOff size={14} /> Offline
+            <div className="flex items-center gap-1 bg-rose-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg animate-pulse">
+              <WifiOff size={14} /> Offline Mode
             </div>
           )}
           
           {deferredPrompt && (
             <button 
               onClick={installApp}
-              className="hidden md:flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-emerald-600 transition-all font-bold text-sm"
+              className="hidden md:flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-emerald-600 transition-all font-bold text-sm"
             >
               <Download size={16} /> Install App
             </button>
@@ -193,16 +204,23 @@ const App: React.FC = () => {
       {isSpeaking && (
         <div className="fixed bottom-6 left-6 bg-white p-3 md:p-4 rounded-full shadow-2xl z-50 animate-bounce flex items-center gap-2 border-2 border-amber-300">
           <Volume2 className="text-amber-500 animate-pulse" size={20} />
-          <span className="text-amber-600 font-bold text-xs md:text-sm">Listening...</span>
+          <span className="text-amber-600 font-bold text-xs md:text-sm">Talking...</span>
         </div>
       )}
 
       {/* Mobile Install Hint */}
-      {deferredPrompt && (
+      {deferredPrompt && !isInstalled && (
         <div className="md:hidden fixed bottom-6 right-6 z-40">
-           <button onClick={installApp} className="bg-emerald-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center animate-pulse border-4 border-white">
+           <button onClick={installApp} className="bg-emerald-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center animate-bounce border-4 border-white">
               <Download size={24} />
            </button>
+        </div>
+      )}
+
+      {/* Offline AI Warning */}
+      {!isOnline && (
+        <div className="fixed bottom-0 left-0 right-0 bg-rose-500 text-white text-[10px] font-bold text-center py-1 z-[100] uppercase tracking-widest">
+          AI Voice & 3D Magic requires internet. Lessons are working offline!
         </div>
       )}
     </div>
