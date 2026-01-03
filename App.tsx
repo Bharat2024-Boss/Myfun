@@ -17,7 +17,8 @@ import {
   Globe,
   Download,
   WifiOff,
-  CheckCircle2
+  CheckCircle2,
+  Info
 } from 'lucide-react';
 import { Category, Language, LANGUAGES } from './types';
 import HomeView from './components/HomeView';
@@ -30,6 +31,7 @@ import QuizView from './components/QuizView';
 import WeekDaysView from './components/WeekDaysView';
 import MonthsView from './components/MonthsView';
 import SeasonsView from './components/SeasonsView';
+import KiddoBot from './components/KiddoBot';
 import { geminiService, decodeBase64, decodeAudioData } from './services/geminiService';
 
 const App: React.FC = () => {
@@ -40,6 +42,7 @@ const App: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [showInstallInfo, setShowInstallInfo] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
@@ -50,7 +53,6 @@ const App: React.FC = () => {
       setDeferredPrompt(e);
     };
     
-    // Check if app is already running in standalone mode
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
     }
@@ -67,7 +69,10 @@ const App: React.FC = () => {
   }, []);
 
   const installApp = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      setShowInstallInfo(true);
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
@@ -149,25 +154,23 @@ const App: React.FC = () => {
           </div>
           <div className="flex flex-col">
             <h1 className="text-xl md:text-3xl font-bold text-slate-800 tracking-tight leading-none">KiddoLand</h1>
-            {isInstalled && <span className="text-[10px] font-bold text-emerald-500 flex items-center gap-1 uppercase tracking-tighter"><CheckCircle2 size={10} /> Installed</span>}
+            {isInstalled && <span className="text-[10px] font-bold text-emerald-500 flex items-center gap-1 uppercase tracking-tighter"><CheckCircle2 size={10} /> App Installed</span>}
           </div>
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
           {!isOnline && (
             <div className="flex items-center gap-1 bg-rose-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg animate-pulse">
-              <WifiOff size={14} /> Offline Mode
+              <WifiOff size={14} /> Offline
             </div>
           )}
           
-          {deferredPrompt && (
-            <button 
-              onClick={installApp}
-              className="hidden md:flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-emerald-600 transition-all font-bold text-sm"
-            >
-              <Download size={16} /> Install App
-            </button>
-          )}
+          <button 
+            onClick={installApp}
+            className={`flex items-center gap-2 ${isInstalled ? 'bg-slate-100 text-slate-400' : 'bg-emerald-500 text-white shadow-lg animate-bounce'} px-4 py-2 rounded-full transition-all font-bold text-sm hidden md:flex`}
+          >
+            <Download size={16} /> {isInstalled ? 'Installed' : 'Install App'}
+          </button>
 
           <div className="relative">
             <button onClick={() => setShowLangs(!showLangs)} className="flex items-center gap-1.5 bg-white px-3 py-2 rounded-full shadow-md text-slate-700 font-bold text-xs md:text-sm">
@@ -204,15 +207,40 @@ const App: React.FC = () => {
       {isSpeaking && (
         <div className="fixed bottom-6 left-6 bg-white p-3 md:p-4 rounded-full shadow-2xl z-50 animate-bounce flex items-center gap-2 border-2 border-amber-300">
           <Volume2 className="text-amber-500 animate-pulse" size={20} />
-          <span className="text-amber-600 font-bold text-xs md:text-sm">Talking...</span>
+          <span className="text-amber-600 font-bold text-xs md:text-sm">Sparky Speaking...</span>
+        </div>
+      )}
+
+      {/* KiddoBot Buddy - Sparky */}
+      <KiddoBot language={language} onSpeak={speak} shouldIntro={currentCategory === 'home'} />
+
+      {/* Install Helper Dialog */}
+      {showInstallInfo && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-sm">
+          <div className="bg-white rounded-[3rem] p-8 max-w-sm w-full text-center shadow-2xl animate-in zoom-in">
+            <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Info size={40} className="text-blue-500" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-800 mb-4">How to Install?</h3>
+            <p className="text-slate-600 mb-6 font-medium">
+              1. Tap the <span className="font-bold text-blue-500">three dots</span> or <span className="font-bold text-blue-500">share icon</span> in your browser.<br/>
+              2. Select <span className="font-bold">"Add to Home Screen"</span> or <span className="font-bold">"Install App"</span>.
+            </p>
+            <button 
+              onClick={() => setShowInstallInfo(false)}
+              className="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold"
+            >
+              Got it!
+            </button>
+          </div>
         </div>
       )}
 
       {/* Mobile Install Hint */}
       {deferredPrompt && !isInstalled && (
-        <div className="md:hidden fixed bottom-6 right-6 z-40">
-           <button onClick={installApp} className="bg-emerald-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center animate-bounce border-4 border-white">
-              <Download size={24} />
+        <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full px-6">
+           <button onClick={installApp} className="w-full bg-emerald-500 text-white h-14 rounded-full shadow-2xl flex items-center justify-center gap-2 font-black animate-bounce border-4 border-white">
+              <Download size={20} /> Install Offline App
            </button>
         </div>
       )}
@@ -220,7 +248,7 @@ const App: React.FC = () => {
       {/* Offline AI Warning */}
       {!isOnline && (
         <div className="fixed bottom-0 left-0 right-0 bg-rose-500 text-white text-[10px] font-bold text-center py-1 z-[100] uppercase tracking-widest">
-          AI Voice & 3D Magic requires internet. Lessons are working offline!
+          AI Voice & 3D Magic needs WiFi. All lessons work offline!
         </div>
       )}
     </div>

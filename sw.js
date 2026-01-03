@@ -1,9 +1,8 @@
 
-const CACHE_NAME = 'kiddoland-v2';
+const CACHE_NAME = 'kiddoland-v3';
 const OFFLINE_URL = './index.html';
 
-// Essential assets to cache immediately
-const ASSETS_TO_CACHE = [
+const INITIAL_CACHE = [
   './',
   './index.html',
   './manifest.json',
@@ -15,8 +14,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache - KiddoLand is ready for offline!');
-      return cache.addAll(ASSETS_TO_CACHE);
+      return cache.addAll(INITIAL_CACHE);
     })
   );
   self.skipWaiting();
@@ -24,47 +22,33 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
+    caches.keys().then((keys) => {
+      return Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
     })
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(event.request).then((networkResponse) => {
-        // Don't cache AI API responses or large external streams
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic' || 
-            event.request.url.includes('generativelanguage.googleapis.com')) {
-          return networkResponse;
-        }
-
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+    caches.match(event.request).then((cached) => {
+      const networked = fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const cacheCopy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, cacheCopy);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          if (event.request.mode === 'navigate') return caches.match(OFFLINE_URL);
         });
 
-        return networkResponse;
-      }).catch(() => {
-        // If everything fails (offline and not cached), return the main page
-        if (event.request.mode === 'navigate') {
-          return caches.match(OFFLINE_URL);
-        }
-      });
+      return cached || networked;
     })
   );
 });
