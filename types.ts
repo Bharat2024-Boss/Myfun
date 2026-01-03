@@ -6,6 +6,8 @@ export type Category =
   | 'math' 
   | 'stories' 
   | 'rhymes'
+  | 'songs'
+  | 'videos'
   | 'quiz' 
   | 'weekdays' 
   | 'months' 

@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -68,6 +67,27 @@ export const geminiService = {
     return JSON.parse(response.text) as { title: string; content: string };
   },
 
+  async generateSong(topic: string, lang: string = 'English') {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Create the lyrics for a catchy, educational song for a 5-year-old about: ${topic}. Include a Chorus and 2 Verses. Language: ${lang}.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            lyrics: { type: Type.STRING },
+            vibe: { type: Type.STRING, description: "Musical style, e.g., upbeat pop, lullaby" }
+          },
+          required: ["title", "lyrics", "vibe"],
+        },
+      },
+    });
+    return JSON.parse(response.text) as { title: string; lyrics: string; vibe: string };
+  },
+
   async generateStory(topic: string, lang: string = 'English') {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -87,6 +107,29 @@ export const geminiService = {
       },
     });
     return JSON.parse(response.text) as { title: string; story: string; imagePrompt: string };
+  },
+
+  async generateVideo(prompt: string) {
+    const ai = getAI();
+    let operation = await ai.models.generateVideos({
+      model: 'veo-3.1-fast-generate-preview',
+      prompt: `A cute, vibrant, 3D animated scene for kids: ${prompt}. Friendly characters, bright colors, Pixar style.`,
+      config: {
+        numberOfVideos: 1,
+        resolution: '720p',
+        aspectRatio: '16:9'
+      }
+    });
+    
+    while (!operation.done) {
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      operation = await ai.operations.getVideosOperation({ operation: operation });
+    }
+
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+    const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
   },
 
   async textToSpeech(text: string, lang: string = 'English') {

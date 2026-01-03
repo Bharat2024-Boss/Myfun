@@ -1,5 +1,7 @@
 {
   "name": "KiddoLand AI: Explore & Learn",
   "description": "A vibrant, interactive educational app for children to learn about colors, fruits, vegetables, alphabet, and math using AI-generated visuals, audio rhymes, and educational content.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "microphone"
+  ]
 }

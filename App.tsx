@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   BookOpen, 
@@ -19,7 +18,9 @@ import {
   WifiOff,
   CheckCircle2,
   Info,
-  Book
+  Book,
+  Video,
+  Music2
 } from 'lucide-react';
 import { Category, Language, LANGUAGES } from './types';
 import HomeView from './components/HomeView';
@@ -29,6 +30,8 @@ import FruitsVegView from './components/FruitsVegView';
 import MathView from './components/MathView';
 import RhymeTimeView from './components/RhymeTimeView';
 import StoriesView from './components/StoriesView';
+import VideoView from './components/VideoView';
+import SongsView from './components/SongsView';
 import QuizView from './components/QuizView';
 import WeekDaysView from './components/WeekDaysView';
 import MonthsView from './components/MonthsView';
@@ -110,6 +113,8 @@ const App: React.FC = () => {
   };
 
   const categories = [
+    { id: 'videos', label: 'Cinema Hall', icon: Video, color: 'bg-indigo-500' },
+    { id: 'songs', label: 'Music Room', icon: Music2, color: 'bg-pink-500' },
     { id: 'stories', label: 'Magic Stories', icon: Book, color: 'bg-amber-500' },
     { id: 'rhymes', label: 'Rhyme Time', icon: Music, color: 'bg-yellow-400' },
     { id: 'alphabet', label: 'ABC Letters', icon: BookOpen, color: 'bg-rose-400' },
@@ -136,6 +141,8 @@ const App: React.FC = () => {
       case 'seasons': return <SeasonsView onSpeak={speak} />;
       case 'rhymes': return <RhymeTimeView onSpeak={speak} language={language} />;
       case 'stories': return <StoriesView onSpeak={speak} language={language} />;
+      case 'videos': return <VideoView language={language} />;
+      case 'songs': return <SongsView onSpeak={speak} language={language} />;
       case 'quiz': return <QuizView onSpeak={speak} onGoHome={() => setCurrentCategory('home')} />;
       default: return <HomeView onSelectCategory={setCurrentCategory} categories={categories} />;
     }
