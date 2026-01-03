@@ -1,0 +1,40 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Explicit permissions required for PWA Builder and Artifact uploads
+permissions:
+  contents: write
+  actions: write
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build Android App (APK)
+        uses: pwa-builder/pwa-to-app-action@v2
+        with:
+          platform: android
+          # IMPORTANT: Your GitHub Pages must be ENABLED and LIVE for this to work.
+          # The builder needs to visit this URL to 'see' your manifest.json.
+          url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          name: "KiddoLand AI"
+          packageId: "com.kiddoland.ai.app"
+          version: "1.0.0"
+          
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kiddoland-android-apk
+          path: ./*-release.apk
+          if-no-files-found: error

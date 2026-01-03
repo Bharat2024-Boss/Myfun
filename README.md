@@ -1,17 +1,28 @@
-
 # 🚀 KiddoLand AI: Android APK Guide
 
-This repository is set up to automatically build an Android App (.apk) for you!
+This repository uses GitHub Actions and PWA Builder to automatically create an Android App (.apk) for you!
 
-## How to get your APK file:
+## ⚠️ CRITICAL: Fix for "Repository Not Found" Error
+If your GitHub Action failed with "Unable to resolve action", please check these settings:
 
-1. **Push your code**: Upload these files to your GitHub repository.
-2. **Go to "Actions"**: At the top of your GitHub repository page, click the **Actions** tab.
-3. **Select Workflow**: On the left, click **"Build Android APK"**.
-4. **Find the Build**: Click on the most recent run (usually at the top with a green checkmark).
-5. **Download**: Scroll down to the **"Artifacts"** section at the bottom of that page.
-6. **Install**: Click on **`kiddoland-android-apk`**. This will download a ZIP file. Inside it is your `.apk` file!
-7. **Phone Install**: Copy that `.apk` to your Android phone and open it to install. (You may need to allow "Install from Unknown Sources").
+1. **Enable GitHub Pages (MANDATORY)**:
+   - Go to your repository **Settings** > **Pages**.
+   - Under **Build and deployment** > **Branch**, select `main` and `/ (root)`.
+   - Click **Save**.
+   - **Wait 2 minutes** for your site to go live at `https://yourname.github.io/your-repo/`. The APK builder **cannot** work until the site is live.
 
-## Requirements for Best Results:
-- Ensure you enable **GitHub Pages** in your repository settings (`Settings` > `Pages` > `Source: Deploy from branch`) so the builder can see the live app.
+2. **Actions Permissions**:
+   - Go to **Settings** > **Actions** > **General**.
+   - Under **Policies**, select **"Allow all actions and reusable workflows"**.
+   - Under **Workflow permissions**, select **"Read and write permissions"**.
+   - Click **Save**.
+
+## How to download your APK:
+
+1. **Push your code**: Ensure all files are uploaded to the `main` branch.
+2. **Wait for Build**: Go to the **Actions** tab. You will see "Build Android APK" running.
+3. **Success**: Once it turns green, click the build name.
+4. **Download**: Scroll down to **Artifacts** at the bottom and click `kiddoland-android-apk`.
+5. **Install**: Extract the ZIP and send the `.apk` to your phone. 
+
+*Note: You may need to allow "Install from Unknown Sources" on your Android device.*
