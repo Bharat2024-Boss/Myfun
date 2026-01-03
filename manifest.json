@@ -2,9 +2,11 @@
 {
   "name": "KiddoLand AI",
   "short_name": "KiddoLand",
-  "description": "Magic 3D Learning for Kids",
-  "start_url": "./",
+  "description": "Magic 3D Learning for Kids with AI Voice and Rhymes",
+  "id": "com.kiddoland.ai.pwa",
+  "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f0fdf4",
   "theme_color": "#3b82f6",
   "icons": [
@@ -13,6 +15,20 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3069/3069172.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3069/3069172.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "KiddoLand Home Screen"
     }
   ]
 }

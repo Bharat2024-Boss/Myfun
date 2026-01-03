@@ -1,20 +1,17 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
 
-# Run and deploy your AI Studio app
+# 🚀 KiddoLand AI: Android APK Guide
 
-This contains everything you need to run your app locally.
+This repository is set up to automatically build an Android App (.apk) for you!
 
-View your app in AI Studio: https://ai.studio/apps/drive/1WdrRqX5JH6Jv1vg2Ju0ZHuW7p2tUXQt9
+## How to get your APK file:
 
-## Run Locally
+1. **Push your code**: Upload these files to your GitHub repository.
+2. **Go to "Actions"**: At the top of your GitHub repository page, click the **Actions** tab.
+3. **Select Workflow**: On the left, click **"Build Android APK"**.
+4. **Find the Build**: Click on the most recent run (usually at the top with a green checkmark).
+5. **Download**: Scroll down to the **"Artifacts"** section at the bottom of that page.
+6. **Install**: Click on **`kiddoland-android-apk`**. This will download a ZIP file. Inside it is your `.apk` file!
+7. **Phone Install**: Copy that `.apk` to your Android phone and open it to install. (You may need to allow "Install from Unknown Sources").
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Requirements for Best Results:
+- Ensure you enable **GitHub Pages** in your repository settings (`Settings` > `Pages` > `Source: Deploy from branch`) so the builder can see the live app.

@@ -18,7 +18,8 @@ import {
   Download,
   WifiOff,
   CheckCircle2,
-  Info
+  Info,
+  Mic
 } from 'lucide-react';
 import { Category, Language, LANGUAGES } from './types';
 import HomeView from './components/HomeView';
@@ -31,7 +32,7 @@ import QuizView from './components/QuizView';
 import WeekDaysView from './components/WeekDaysView';
 import MonthsView from './components/MonthsView';
 import SeasonsView from './components/SeasonsView';
-import KiddoBot from './components/KiddoBot';
+import LiveTalkView from './components/LiveTalkView';
 import { geminiService, decodeBase64, decodeAudioData } from './services/geminiService';
 
 const App: React.FC = () => {
@@ -110,6 +111,7 @@ const App: React.FC = () => {
   };
 
   const categories = [
+    { id: 'livetalk', label: 'Talk to Sparky', icon: Mic, color: 'bg-indigo-600 animate-pulse' },
     { id: 'alphabet', label: 'ABC Letters', icon: BookOpen, color: 'bg-rose-400' },
     { id: 'colors', label: 'Rainbow Colors', icon: Palette, color: 'bg-sky-400' },
     { id: 'fruits', label: 'Yummy Fruits', icon: Apple, color: 'bg-orange-400' },
@@ -135,6 +137,7 @@ const App: React.FC = () => {
       case 'seasons': return <SeasonsView onSpeak={speak} />;
       case 'stories': return <RhymeTimeView onSpeak={speak} language={language} />;
       case 'quiz': return <QuizView onSpeak={speak} onGoHome={() => setCurrentCategory('home')} />;
+      case 'livetalk': return <LiveTalkView onBack={() => setCurrentCategory('home')} />;
       default: return <HomeView onSelectCategory={setCurrentCategory} categories={categories} />;
     }
   };
@@ -165,13 +168,6 @@ const App: React.FC = () => {
             </div>
           )}
           
-          <button 
-            onClick={installApp}
-            className={`flex items-center gap-2 ${isInstalled ? 'bg-slate-100 text-slate-400' : 'bg-emerald-500 text-white shadow-lg animate-bounce'} px-4 py-2 rounded-full transition-all font-bold text-sm hidden md:flex`}
-          >
-            <Download size={16} /> {isInstalled ? 'Installed' : 'Install App'}
-          </button>
-
           <div className="relative">
             <button onClick={() => setShowLangs(!showLangs)} className="flex items-center gap-1.5 bg-white px-3 py-2 rounded-full shadow-md text-slate-700 font-bold text-xs md:text-sm">
               <Globe size={16} className="text-blue-500" />
@@ -204,15 +200,12 @@ const App: React.FC = () => {
       </main>
 
       {/* Global Audio Indicator */}
-      {isSpeaking && (
+      {isSpeaking && currentCategory !== 'livetalk' && (
         <div className="fixed bottom-6 left-6 bg-white p-3 md:p-4 rounded-full shadow-2xl z-50 animate-bounce flex items-center gap-2 border-2 border-amber-300">
           <Volume2 className="text-amber-500 animate-pulse" size={20} />
-          <span className="text-amber-600 font-bold text-xs md:text-sm">Sparky Speaking...</span>
+          <span className="text-amber-600 font-bold text-xs md:text-sm">Speaking...</span>
         </div>
       )}
-
-      {/* KiddoBot Buddy - Sparky */}
-      <KiddoBot language={language} onSpeak={speak} shouldIntro={currentCategory === 'home'} />
 
       {/* Install Helper Dialog */}
       {showInstallInfo && (

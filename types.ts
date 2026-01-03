@@ -10,6 +10,7 @@ export type Category =
   | 'weekdays' 
   | 'months' 
   | 'seasons' 
+  | 'livetalk'
   | 'home';
 
 export type Language = 
