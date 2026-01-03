@@ -67,21 +67,6 @@ export const geminiService = {
     return JSON.parse(response.text) as { title: string; content: string };
   },
 
-  // Added generateDailyFact to fix the error in KiddoBot.tsx
-  async generateDailyFact(lang: string = 'English') {
-    const ai = getAI();
-    try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Tell a fun, amazing, and simple educational fact for a 4-year-old child in ${lang}. Keep it under 20 words.`,
-      });
-      return response.text?.trim() || "Learning is fun!";
-    } catch (e) {
-      console.error("Fact generation error:", e);
-      return "Did you know that stars twinkle in the sky?";
-    }
-  },
-
   async textToSpeech(text: string) {
     const ai = getAI();
     try {
@@ -122,5 +107,20 @@ export const geminiService = {
       }
     }
     return null;
+  },
+
+  // Added generateDailyFact to fix the error in KiddoBot.tsx
+  async generateDailyFact(lang: string = 'English') {
+    const ai = getAI();
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: `Tell me one amazing, fun science or nature fact for a 5-year-old child in ${lang}. Keep it to one sentence. Make it sound very exciting!`,
+      });
+      return response.text?.trim() || "Learning something new is always a magic adventure!";
+    } catch (e) {
+      console.error("Fact generation error:", e);
+      return "Did you know that stars are giant balls of fire?";
+    }
   }
 };
