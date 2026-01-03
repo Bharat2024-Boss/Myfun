@@ -14,7 +14,9 @@ import {
   Calendar,
   CloudSun,
   Clock,
-  Globe
+  Globe,
+  Download,
+  WifiOff
 } from 'lucide-react';
 import { Category, Language, LANGUAGES } from './types';
 import HomeView from './components/HomeView';
@@ -34,10 +36,40 @@ const App: React.FC = () => {
   const [language, setLanguage] = useState<Language>('English');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showLangs, setShowLangs] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const installApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
+
   const speak = async (text: string) => {
-    if (isSpeaking) return;
+    if (isSpeaking || !isOnline) return;
     try {
       setIsSpeaking(true);
       if (!audioContextRef.current) {
@@ -45,11 +77,7 @@ const App: React.FC = () => {
       }
       
       const ctx = audioContextRef.current;
-
-      // 1. Translate if needed
       const translatedText = await geminiService.translateText(text, language);
-      
-      // 2. Generate natural audio
       const base64Audio = await geminiService.textToSpeech(translatedText);
       
       if (base64Audio) {
@@ -83,35 +111,23 @@ const App: React.FC = () => {
 
   const renderView = () => {
     switch (currentCategory) {
-      case 'home':
-        return <HomeView onSelectCategory={setCurrentCategory} categories={categories} />;
-      case 'alphabet':
-        return <AlphabetView onSpeak={speak} />;
-      case 'colors':
-        return <ColorsView onSpeak={speak} />;
-      case 'fruits':
-        return <FruitsVegView type="fruits" onSpeak={speak} />;
-      case 'vegetables':
-        return <FruitsVegView type="vegetables" onSpeak={speak} />;
-      case 'math':
-        return <MathView onSpeak={speak} />;
-      case 'weekdays':
-        return <WeekDaysView onSpeak={speak} />;
-      case 'months':
-        return <MonthsView onSpeak={speak} />;
-      case 'seasons':
-        return <SeasonsView onSpeak={speak} />;
-      case 'stories':
-        return <RhymeTimeView onSpeak={speak} language={language} />;
-      case 'quiz':
-        return <QuizView onSpeak={speak} onGoHome={() => setCurrentCategory('home')} />;
-      default:
-        return <HomeView onSelectCategory={setCurrentCategory} categories={categories} />;
+      case 'home': return <HomeView onSelectCategory={setCurrentCategory} categories={categories} />;
+      case 'alphabet': return <AlphabetView onSpeak={speak} />;
+      case 'colors': return <ColorsView onSpeak={speak} />;
+      case 'fruits': return <FruitsVegView type="fruits" onSpeak={speak} />;
+      case 'vegetables': return <FruitsVegView type="vegetables" onSpeak={speak} />;
+      case 'math': return <MathView onSpeak={speak} />;
+      case 'weekdays': return <WeekDaysView onSpeak={speak} />;
+      case 'months': return <MonthsView onSpeak={speak} />;
+      case 'seasons': return <SeasonsView onSpeak={speak} />;
+      case 'stories': return <RhymeTimeView onSpeak={speak} language={language} />;
+      case 'quiz': return <QuizView onSpeak={speak} onGoHome={() => setCurrentCategory('home')} />;
+      default: return <HomeView onSelectCategory={setCurrentCategory} categories={categories} />;
     }
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex flex-col">
+    <div className="min-h-screen relative overflow-hidden flex flex-col pb-safe">
       {/* Background Decorations */}
       <div className="bubble w-64 h-64 bg-blue-300 top-10 left-10"></div>
       <div className="bubble w-48 h-48 bg-pink-300 bottom-10 right-10"></div>
@@ -119,39 +135,41 @@ const App: React.FC = () => {
 
       {/* Header */}
       <header className="p-4 md:p-6 flex items-center justify-between z-20">
-        <div 
-          className="flex items-center gap-3 cursor-pointer group"
-          onClick={() => setCurrentCategory('home')}
-        >
+        <div className="flex items-center gap-2 md:gap-3 cursor-pointer group" onClick={() => setCurrentCategory('home')}>
           <div className="bg-white p-2 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-            <Sparkles className="text-amber-500 w-8 h-8" />
+            <Sparkles className="text-amber-500 w-6 h-6 md:w-8 md:h-8" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">KiddoLand</h1>
+          <h1 className="text-xl md:text-3xl font-bold text-slate-800 tracking-tight">KiddoLand</h1>
         </div>
 
-        <div className="flex items-center gap-4">
-          {/* Language Selector */}
-          <div className="relative">
+        <div className="flex items-center gap-2 md:gap-4">
+          {!isOnline && (
+            <div className="flex items-center gap-1 bg-rose-100 text-rose-600 px-3 py-1.5 rounded-full text-xs font-bold border border-rose-200">
+              <WifiOff size={14} /> Offline
+            </div>
+          )}
+          
+          {deferredPrompt && (
             <button 
-              onClick={() => setShowLangs(!showLangs)}
-              className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all text-slate-700 font-bold active:scale-95"
+              onClick={installApp}
+              className="hidden md:flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-emerald-600 transition-all font-bold text-sm"
             >
-              <Globe size={18} className="text-blue-500" />
-              {LANGUAGES.find(l => l.value === language)?.flag} {language}
+              <Download size={16} /> Install App
+            </button>
+          )}
+
+          <div className="relative">
+            <button onClick={() => setShowLangs(!showLangs)} className="flex items-center gap-1.5 bg-white px-3 py-2 rounded-full shadow-md text-slate-700 font-bold text-xs md:text-sm">
+              <Globe size={16} className="text-blue-500" />
+              <span className="hidden sm:inline">{language}</span>
+              <span>{LANGUAGES.find(l => l.value === language)?.flag}</span>
             </button>
             {showLangs && (
-              <div className="absolute top-full right-0 mt-2 bg-white rounded-3xl shadow-2xl border-4 border-slate-50 p-2 grid grid-cols-2 gap-2 z-50 w-64 animate-in fade-in zoom-in slide-in-from-top-2">
+              <div className="absolute top-full right-0 mt-2 bg-white rounded-2xl shadow-2xl border-2 border-slate-50 p-1 grid grid-cols-2 gap-1 z-50 w-48 animate-in fade-in zoom-in">
                 {LANGUAGES.map((l) => (
-                  <button
-                    key={l.value}
-                    onClick={() => {
-                      setLanguage(l.value);
-                      setShowLangs(false);
-                    }}
-                    className={`p-3 rounded-2xl flex items-center gap-2 text-sm font-bold transition-all ${language === l.value ? 'bg-blue-500 text-white' : 'hover:bg-slate-100 text-slate-600'}`}
-                  >
-                    <span>{l.flag}</span>
-                    <span>{l.label}</span>
+                  <button key={l.value} onClick={() => { setLanguage(l.value); setShowLangs(false); }}
+                    className={`p-2 rounded-xl flex items-center gap-2 text-xs font-bold transition-all ${language === l.value ? 'bg-blue-500 text-white' : 'hover:bg-slate-100 text-slate-600'}`}>
+                    <span>{l.flag}</span> <span className="truncate">{l.label}</span>
                   </button>
                 ))}
               </div>
@@ -159,11 +177,8 @@ const App: React.FC = () => {
           </div>
 
           {currentCategory !== 'home' && (
-            <button 
-              onClick={() => setCurrentCategory('home')}
-              className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all text-slate-600 font-semibold active:scale-95"
-            >
-              <ChevronLeft size={20} /> Back
+            <button onClick={() => setCurrentCategory('home')} className="flex items-center gap-1 bg-white px-3 py-2 rounded-full shadow-md text-slate-600 font-bold text-xs md:text-sm">
+              <ChevronLeft size={16} /> <span className="hidden sm:inline">Back</span>
             </button>
           )}
         </div>
@@ -174,11 +189,20 @@ const App: React.FC = () => {
         {renderView()}
       </main>
 
-      {/* Global Audio Indicator (Floating) */}
+      {/* Global Audio Indicator */}
       {isSpeaking && (
-        <div className="fixed bottom-6 left-6 bg-white p-4 rounded-full shadow-2xl z-50 animate-bounce flex items-center gap-2 border-2 border-amber-300">
-          <Volume2 className="text-amber-500 animate-pulse" />
-          <span className="text-amber-600 font-bold text-sm">Kiddo is learning...</span>
+        <div className="fixed bottom-6 left-6 bg-white p-3 md:p-4 rounded-full shadow-2xl z-50 animate-bounce flex items-center gap-2 border-2 border-amber-300">
+          <Volume2 className="text-amber-500 animate-pulse" size={20} />
+          <span className="text-amber-600 font-bold text-xs md:text-sm">Listening...</span>
+        </div>
+      )}
+
+      {/* Mobile Install Hint */}
+      {deferredPrompt && (
+        <div className="md:hidden fixed bottom-6 right-6 z-40">
+           <button onClick={installApp} className="bg-emerald-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center animate-pulse border-4 border-white">
+              <Download size={24} />
+           </button>
         </div>
       )}
     </div>
