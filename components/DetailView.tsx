@@ -27,7 +27,6 @@ const DetailView: React.FC<DetailViewProps> = ({
 
   useEffect(() => {
     const init = async () => {
-      // Fetch Image
       if (aiPrompt) {
         setLoading(true);
         try {
@@ -44,17 +43,18 @@ const DetailView: React.FC<DetailViewProps> = ({
   }, [aiPrompt, title]);
 
   useEffect(() => {
+    // Start voice immediately (internal service handles translation)
+    onSpeak(`${title}. ${description}`);
+
+    // Update text in parallel
     const handleTranslation = async () => {
       if (language === 'English') {
         setTranslatedDesc(description);
-        onSpeak(`${title}. ${subtitle || ''}. ${description}`);
       } else {
         setTranslating(true);
         const translated = await geminiService.translateText(description, language);
         setTranslatedDesc(translated);
         setTranslating(false);
-        // We call onSpeak with English text because onSpeak handles translation internally
-        onSpeak(`${title}. ${description}`);
       }
     };
     handleTranslation();
@@ -67,7 +67,6 @@ const DetailView: React.FC<DetailViewProps> = ({
         onClick={onClose}
       />
       
-      {/* Navigation Buttons */}
       {onPrev && (
         <button onClick={onPrev} className="fixed left-4 md:left-8 z-[60] bg-white/90 p-4 md:p-6 rounded-full shadow-2xl hover:scale-110 active:scale-90 transition-all text-slate-700 border-4 border-slate-100 hidden sm:flex">
           <ChevronLeft size={48} />
@@ -87,12 +86,11 @@ const DetailView: React.FC<DetailViewProps> = ({
           <X size={24} className="text-slate-500" />
         </button>
 
-        {/* Visual Section */}
         <div className="w-full md:w-1/2 flex items-center justify-center p-8 bg-slate-50 relative">
           {loading ? (
             <div className="flex flex-col items-center gap-4">
               <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-              <p className="font-bold text-slate-400 text-center px-4">Creating 3D Character...</p>
+              <p className="font-bold text-slate-400 text-center px-4">Creating Character...</p>
             </div>
           ) : imageUrl ? (
             <img src={imageUrl} alt={title} className="w-full h-full object-contain drop-shadow-2xl animate-in fade-in zoom-in duration-700" />
@@ -103,7 +101,6 @@ const DetailView: React.FC<DetailViewProps> = ({
           )}
         </div>
 
-        {/* Content Section */}
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center gap-6">
           <div>
             <h2 className="text-6xl font-extrabold text-slate-800 tracking-tight">{title}</h2>
@@ -113,7 +110,7 @@ const DetailView: React.FC<DetailViewProps> = ({
           <div className="p-8 bg-slate-50 rounded-[3rem] border-2 border-slate-100 relative min-h-[160px] flex items-center justify-center">
             {translating ? (
               <div className="flex items-center gap-3 text-slate-400 animate-pulse">
-                <Languages className="animate-spin" /> <span>Translating...</span>
+                <Languages size={24} className="animate-spin" /> <span>Translating text...</span>
               </div>
             ) : (
               <p className="text-2xl md:text-3xl text-slate-700 font-fredoka leading-relaxed">
@@ -127,11 +124,11 @@ const DetailView: React.FC<DetailViewProps> = ({
               onClick={() => onSpeak(`${title}. ${description}`)}
               className="w-full bg-blue-500 text-white py-6 rounded-full font-bold text-3xl flex items-center justify-center gap-4 hover:bg-blue-600 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-blue-200"
             >
-              <Volume2 size={40} /> Listen in {language}
+              <Volume2 size={40} /> Play Voice
             </button>
             <div className="flex items-center justify-center gap-2 text-slate-400 text-sm font-bold">
               <Sparkles size={16} className="text-amber-400" />
-              <span>AI Multi-Language Discovery</span>
+              <span>Instant AI Multi-Language Voice</span>
             </div>
           </div>
         </div>
