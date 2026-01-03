@@ -1,0 +1,35 @@
+
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Android App (APK)
+        uses: pwa-builder/pwa-to-app-action@v2
+        with:
+          platform: android
+          # IMPORTANT: This URL must be live on GitHub Pages for the builder to work.
+          # The builder scans the manifest at this URL to create the APK.
+          url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          name: "KiddoLand AI"
+          packageId: "com.kiddoland.ai.app"
+          version: "1.0.0"
+          
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kiddoland-android-apk
+          path: ./*-release.apk
